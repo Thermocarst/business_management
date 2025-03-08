@@ -64,12 +64,12 @@ MIDDLEWARE = [
 """CORS"""
 CORS_ALLOW_ALL_ORIGINS = True
 
-# CORS_ALLOWED_ORIGINS = [
-#     # "http://127.0.0.1:5500",
-#     # "http://127.0.0.1:5501",
-#     # "http://127.0.0.1:5173",
-#     # "http://127.0.0.1:3000",
-# ]
+CORS_ALLOWED_ORIGINS = [
+    # "http://127.0.0.1:5500",
+    # "http://127.0.0.1:5501",
+    # "http://127.0.0.1:5173",
+    # "http://127.0.0.1:3000",
+]
 
 CORS_ALLOW_METHODS = (
     "DELETE",
@@ -116,6 +116,8 @@ WSGI_APPLICATION = 'api.wsgi.app'
 # Note: Django modules for using databases are not support in serverless
 # environments like Vercel. You can use a database over HTTP, hosted elsewhere.
 # NEON DB https://neon.tech/docs/guides/django-migrations
+# psql-client https://neon.tech/docs/connect/query-with-psql-editor
+# The endpoint ID is not specified https://neon.tech/docs/connect/connection-errors#the-endpoint-id-is-not-specified
 import os
 from dotenv import load_dotenv
 from urllib.parse import urlparse

@@ -2,6 +2,8 @@ from rest_framework import permissions, generics, views, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+
+from logger.settings import console_logger
 from users.models import User
 from users.permissions import CreateEmployeePermission, CreateCompanyPermission
 from users.serializers import UserSerializer, RegistrationCompanyOwnerSerializer, CreateEmployeeSerializer, \
@@ -22,10 +24,24 @@ class InfoView(generics.RetrieveUpdateAPIView):
         return user[0]
 
 
-class RegistrationCompanyOwnerView(generics.CreateAPIView):
-    """Register company owner view provide only post method"""
-    serializer_class = RegistrationCompanyOwnerSerializer
-    permission_classes = (permissions.AllowAny, )
+class RegistrationCompanyOwnerView(views.APIView):
+    """"""
+    def post(self, request):
+    
+        serializer = RegistrationCompanyOwnerSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+            access_token: str = str(refresh.access_token)
+            return Response({"username": serializer.data["username"],
+                             "access": str(access_token),
+                             "refresh": str(refresh)},
+                            status=status.HTTP_200_OK)
+        elif serializer.errors:
+            return Response(serializer.errors, status=status.HTTP_409_CONFLICT)
+        else:
+            return Response({"error": "Unexpected error"},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class CreateCompanyView(generics.CreateAPIView):
@@ -49,10 +65,16 @@ class LoginView(views.APIView):
             user = serializer.validated_data
             refresh = RefreshToken.for_user(user)
             access_token: str = str(refresh.access_token)
-            return Response({"access": str(access_token),
+            return Response({"username": serializer.data["username"],
+                             "access": str(access_token),
                              "refresh": str(refresh)},
                             status=status.HTTP_200_OK)
-        return Response({"error": "Unexpected error"})
+        elif serializer.errors:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "Unexpected error"},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(views.APIView):
@@ -61,6 +83,6 @@ class LogoutView(views.APIView):
     and still available retrieve data with token
     """
     def post(self, request):
-        
+
         return Response({"message": "Logout successfully"},
                         status=status.HTTP_200_OK)

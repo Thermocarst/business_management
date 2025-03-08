@@ -27,8 +27,15 @@ class User(AbstractUser):
                                    verbose_name=_("image"),
                                    help_text="500x500", null=True, blank=True)
 
+    def __str__(self):
+        return self.username
+
 
 class Company(models.Model):
 
     title: str = models.CharField(max_length=100, verbose_name=_("title"))
     user: id = models.ManyToManyField(User, verbose_name=_("user"), related_name="companies")
+
+    def __str__(self):
+        return self.title
+    
