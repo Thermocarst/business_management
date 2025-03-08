@@ -21,7 +21,7 @@ path: %(pathname)s""",
                     "formatter": "std_formatter"},
         
         "file": {"class": "logging.FileHandler",
-                 "filename": "journal.log",
+                 "filename": "/tmp/journal.log",
                  "mode": "a",
                  "encoding": "utf-8",
                  "level": "WARNING",
