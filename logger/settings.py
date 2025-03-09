@@ -21,6 +21,7 @@ path: %(pathname)s""",
                     "formatter": "std_formatter"},
         
         "file": {"class": "logging.FileHandler",
+                 # https://github.com/vercel/vercel/discussions/5320
                  "filename": "/tmp/journal.log",
                  "mode": "a",
                  "encoding": "utf-8",

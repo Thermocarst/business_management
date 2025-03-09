@@ -98,7 +98,6 @@ class CreateUserUtils:
         company_owner_permission = Group.objects.get(name="Company administrator")
         user.groups.add(company_owner_permission)
         return user
-            
     
     @staticmethod
     def _create_employee(user: User, company: int, creator: User):
