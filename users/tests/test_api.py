@@ -437,3 +437,64 @@ class UsersEmployeeCredentialsAPITestCase(APITestCase):
         response = client.post(path=url, data=json.dumps(data),
                                content_type="application/json")
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    def test_user_company_detail(self):
+        """"""
+        # login admin
+        url = reverse("login")
+        data = {"username": "company_employee", "password": "qwerty"}
+        response = self.client.post(path=url, data=json.dumps(data),
+                                    content_type="application/json")
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual("company_employee", response.data["username"])
+        # employee this company get company detail
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
+        url = reverse("company", kwargs={"pk": 1})
+        response = client.get(path=url)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        expected = {"id": 1, "title": "Tiny Logistics", "employees": [
+            {"id": 1, "username": "test_company_owner", "role": "COMPANY_OWNER", 
+             "first_name": "", "last_name": ""},
+			{"id": 2, "username": "company_employee", "role": "EMPLOYEE", 
+             "first_name": "", "last_name": ""}
+        ]}
+        self.assertEqual(expected, response.data)
+	
+    def test_user_company_detail_someone_else_company(self):
+        """"""
+        # create company owner 2
+        url = reverse("register-company-owner")
+        data = {"username": "test_company_owner_2", "email":"companyowner2@mail.com",
+                "password": "qwerty", "password2": "qwerty"}
+        response = self.client.post(path=url, data=json.dumps(data),
+                                    content_type="application/json")
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        expected = "test_company_owner_2"         # {"username": "", "access": "", "refresh": ""}
+        self.assertEqual(expected, response.data["username"])
+        # create company 2
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
+        url = reverse("create-company")
+        data = {"title": "Advanced Software"}
+        response = client.post(path=url, data=json.dumps(data),
+                               content_type="application/json")
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        expected = {"title": "Advanced Software"}
+        self.assertEqual(expected, response.data)
+        # try user get company detail someone else company
+        # login company employee
+        url = reverse("login")
+        data = {"username": "company_employee", "password": "qwerty"}
+        response = self.client.post(path=url, data=json.dumps(data),
+                                    content_type="application/json")
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual("company_employee", response.data["username"])
+
+        company = Company.objects.get(title="Advanced Software")
+
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
+        url = reverse("company", kwargs={"pk": company.id})
+        response = client.get(path=url)
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)

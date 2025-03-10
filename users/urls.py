@@ -1,6 +1,6 @@
 from django.urls import path
 from users.views import InfoView, RegistrationCompanyOwnerView, CreateEmployeeView, LoginView, LogoutView, \
-    CreateCompanyView
+    CreateCompanyView, CompanyDetailView
 
 urlpatterns = [
     path("info/", InfoView.as_view(), name="user-info"),
@@ -9,4 +9,5 @@ urlpatterns = [
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("create-company/", CreateCompanyView.as_view(), name="create-company"),
+    path("company/<int:pk>/", CompanyDetailView.as_view(), name="company"),
 ]

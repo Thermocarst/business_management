@@ -4,10 +4,10 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
 from logger.settings import console_logger
-from users.models import User
+from users.models import User, Company
 from users.permissions import CreateEmployeePermission, CreateCompanyPermission
 from users.serializers import UserSerializer, RegistrationCompanyOwnerSerializer, CreateEmployeeSerializer, \
-    LoginUserSerializer, CreateCompanySerializer
+    LoginUserSerializer, CreateCompanySerializer, CompanySerializer
 
 
 # Create your views here.
@@ -20,7 +20,7 @@ class InfoView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         """Get user data"""
-        user = User.objects.filter(id=self.request.user.id).prefetch_related("companies")
+        user = User.objects.filter(id=self.request.user.id).prefetch_related("companies__user")
         return user[0]
 
 
@@ -48,6 +48,23 @@ class CreateCompanyView(generics.CreateAPIView):
     """Create company view provide only post method"""
     serializer_class = CreateCompanySerializer
     permission_classes = (CreateCompanyPermission, )
+
+
+class CompanyDetailView(views.APIView):
+    model = Company
+    serializer_class = CompanySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        """"""
+        if self.kwargs["pk"] in [x.id for x in self.request.user.companies.all()] or self.request.user.is_superuser:
+            queryset = Company.objects.filter(id=self.kwargs["pk"]).prefetch_related("user")[0]
+            serializer = CompanySerializer(queryset)
+            return Response(serializer.data,
+                            status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": "You do not have permission to perform this action."},
+                            status=status.HTTP_403_FORBIDDEN)
 
 
 class CreateEmployeeView(generics.CreateAPIView):
